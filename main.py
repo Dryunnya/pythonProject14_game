@@ -17,29 +17,33 @@ player_walk_image = [pygame.image.load("project/walk1.png"), pygame.image.load("
                      pygame.image.load("project/walk9.png"), pygame.image.load("project/walk10.png")]
 
 yeti_animation = [pygame.image.load("project/yeti (1).png"), pygame.image.load("project/yeti (2).png"),
-                       pygame.image.load("project/yeti (3).png"), pygame.image.load("project/yeti (4).png"),
-                       pygame.image.load("project/yeti (5).png"), pygame.image.load("project/yeti (6).png"),
-                       pygame.image.load("project/yeti (7).png"), pygame.image.load("project/yeti (8).png"),
-                       pygame.image.load("project/yeti (9).png"), pygame.image.load("project/yeti (10).png"),
-                       pygame.image.load("project/yeti (11).png"), pygame.image.load("project/yeti (12).png"),
-                       pygame.image.load("project/yeti (13).png"), pygame.image.load("project/yeti (14).png"),
-                       pygame.image.load("project/yeti (15).png"), pygame.image.load("project/yeti (16).png"),
-                       pygame.image.load("project/yeti (17).png"), pygame.image.load("project/yeti (18).png"),
-                       pygame.image.load("project/yeti (19).png"), pygame.image.load("project/yeti (20).png"),
-                       pygame.image.load("project/yeti (21).png"), pygame.image.load("project/yeti (22).png"),
-                       pygame.image.load("project/yeti (23).png"), pygame.image.load("project/yeti (24).png"),
-                       pygame.image.load("project/yeti (25).png"), pygame.image.load("project/yeti (26).png"),
-                       pygame.image.load("project/yeti (27).png"), pygame.image.load("project/yeti (28).png"),
-                       pygame.image.load("project/yeti (29).png"), pygame.image.load("project/yeti (30).png"),
-                       pygame.image.load("project/yeti (31).png"), pygame.image.load("project/yeti (32).png"),
-                       pygame.image.load("project/yeti (33).png"), pygame.image.load("project/yeti (34).png"),
-                       pygame.image.load("project/yeti (35).png"), pygame.image.load("project/yeti (36).png"),
-                       pygame.image.load("project/yeti (37).png"), pygame.image.load("project/yeti (38).png"),
-                       pygame.image.load("project/yeti (39).png"), pygame.image.load("project/yeti (40).png"),
-                       pygame.image.load("project/yeti (41).png"), pygame.image.load("project/yeti (42).png"),
-                       pygame.image.load("project/yeti (43).png"), pygame.image.load("project/yeti (44).png"),
-                       pygame.image.load("project/yeti (45).png"), pygame.image.load("project/yeti (46).png"),
-                       pygame.image.load("project/yeti (47).png"), pygame.image.load("project/yeti (48).png")]
+                  pygame.image.load("project/yeti (3).png"), pygame.image.load("project/yeti (4).png"),
+                  pygame.image.load("project/yeti (5).png"), pygame.image.load("project/yeti (6).png"),
+                  pygame.image.load("project/yeti (7).png"), pygame.image.load("project/yeti (8).png"),
+                  pygame.image.load("project/yeti (9).png"), pygame.image.load("project/yeti (10).png"),
+                  pygame.image.load("project/yeti (11).png"), pygame.image.load("project/yeti (12).png"),
+                  pygame.image.load("project/yeti (13).png"), pygame.image.load("project/yeti (14).png"),
+                  pygame.image.load("project/yeti (15).png"), pygame.image.load("project/yeti (16).png"),
+                  pygame.image.load("project/yeti (17).png"), pygame.image.load("project/yeti (18).png"),
+                  pygame.image.load("project/yeti (19).png"), pygame.image.load("project/yeti (20).png"),
+                  pygame.image.load("project/yeti (21).png"), pygame.image.load("project/yeti (22).png"),
+                  pygame.image.load("project/yeti (23).png"), pygame.image.load("project/yeti (24).png"),
+                  pygame.image.load("project/yeti (25).png"), pygame.image.load("project/yeti (26).png"),
+                  pygame.image.load("project/yeti (27).png"), pygame.image.load("project/yeti (28).png"),
+                  pygame.image.load("project/yeti (29).png"), pygame.image.load("project/yeti (30).png"),
+                  pygame.image.load("project/yeti (31).png"), pygame.image.load("project/yeti (32).png"),
+                  pygame.image.load("project/yeti (33).png"), pygame.image.load("project/yeti (34).png"),
+                  pygame.image.load("project/yeti (35).png"), pygame.image.load("project/yeti (36).png"),
+                  pygame.image.load("project/yeti (37).png"), pygame.image.load("project/yeti (38).png"),
+                  pygame.image.load("project/yeti (39).png"), pygame.image.load("project/yeti (40).png"),
+                  pygame.image.load("project/yeti (41).png"), pygame.image.load("project/yeti (42).png"),
+                  pygame.image.load("project/yeti (43).png"), pygame.image.load("project/yeti (44).png"),
+                  pygame.image.load("project/yeti (45).png"), pygame.image.load("project/yeti (46).png"),
+                  pygame.image.load("project/yeti (47).png"), pygame.image.load("project/yeti (48).png")]
+
+weapon = pygame.image.load('project/weapon.png').convert_alpha()
+# weapon.set_colorkey((255, 255, 255))
+weapon = pygame.transform.scale(weapon, (30, 20))
 
 
 # class AnimatedSprite(pygame.sprite.Sprite):
@@ -77,6 +81,16 @@ class Player:
         self.moving_right = False
         self.moving_left = False
 
+    def weapon_player(self, screen):
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+
+        weapon_pos_x, weapon_pos_y = mouse_x - player.x, mouse_y - player.y
+        angle = -math.atan2(weapon_pos_y, weapon_pos_x) * (180 / math.pi)
+
+        copy_player_weapon = pygame.transform.rotate(weapon, angle)
+        screen.blit(copy_player_weapon,
+                    (self.x + 45 - int(weapon.get_width() / 2), self.y + 45 - int(weapon.get_height() / 2)))
+
     def main(self, screen):
         if self.animation_count + 1 == 10:
             self.animation_count = 0
@@ -92,6 +106,9 @@ class Player:
                     (70, 70)), (self.x, self.y))
         else:
             screen.blit(pygame.transform.scale(player_walk_image[0], (70, 70)), (self.x, self.y))
+
+
+        self.weapon_player(screen)
 
         self.moving_up = False
         self.moving_down = False
@@ -110,10 +127,12 @@ class PlayerBullet:
         self.x_vel = math.cos(self.angle) * self.speed
         self.y_vel = math.sin(self.angle) * self.speed
 
+
+
     def main(self, screen):
         self.x -= int(self.x_vel)
         self.y -= int(self.y_vel)
-        pygame.draw.circle(screen, 'yellow', (self.x, self.y), 5)
+        pygame.draw.circle(screen, 'red', (self.x, self.y), 5)
 
 
 class YetiEnimy:
@@ -148,7 +167,7 @@ class YetiEnimy:
         else:
             self.y -= 1
 
-        screen.blit(pygame.transform.scale(yeti_animation[int(self.animation_count)], (30, 30)),
+        screen.blit(pygame.transform.scale(yeti_animation[int(self.animation_count)], (50, 50)),
                     (self.x - display_scroll[0], self.y - display_scroll[1]))
         print(pygame.time.get_ticks())
 
@@ -172,7 +191,7 @@ while True:
             pygame.QUIT
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
-                player_bulets.append(PlayerBullet(player.x, player.y, mouse_x, mouse_y))
+                player_bulets.append(PlayerBullet(player.x + 50, player.y + 50, mouse_x, mouse_y))
 
     keys = pygame.key.get_pressed()
 
@@ -214,6 +233,6 @@ while True:
     for model in enimies:
         model.main(screen)
 
-    clock.tick(40)
+    clock.tick(80)
 
     pygame.display.update()
