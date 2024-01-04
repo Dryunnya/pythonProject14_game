@@ -228,7 +228,6 @@ while True:
             x += PLATFORM_WIDTH  # блоки платформы ставятся на ширине блоков
         y += PLATFORM_HEIGHT  # то же самое и с высотой
         x = 0  # на каждой новой строчке
-    pygame.display.update()  #
     keys = pygame.key.get_pressed()
 
     pygame.draw.rect(screen, 'brown', (100 - display_scroll[0], 100 - display_scroll[1], 20, 20))
