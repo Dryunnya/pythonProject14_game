@@ -5,8 +5,12 @@ import pygame
 import math
 import random
 
+
+# моргание происходит из-за отрисовки поля. поменять координаты местами у главного спрайта и остального поля
+
+
 pygame.init()
-screen = pygame.display.set_mode((800, 600))
+screen = pygame.display.set_mode((1500, 800))
 clock = pygame.time.Clock()
 
 player_walk_image = [pygame.image.load("project/walk1.png"), pygame.image.load("project/walk2.png"), pygame.image.load(
@@ -45,28 +49,14 @@ weapon = pygame.image.load('project/weapon.png').convert_alpha()
 # weapon.set_colorkey((255, 255, 255))
 weapon = pygame.transform.scale(weapon, (30, 20))
 
+# WIN_WIDTH = 1200  # Ширина создаваемого окна
+# WIN_HEIGHT = 750  # Высота
+# DISPLAY = (WIN_WIDTH, WIN_HEIGHT)  # Группируем ширину и высоту в одну переменную
 
-# class AnimatedSprite(pygame.sprite.Sprite):
-#     def __init__(self, sheet, columns, rows, x, y):
-#         super().__init__(all_sprites)
-#         self.frames = []
-#         self.cut_sheet(sheet, columns, rows)
-#         self.cur_frame = 0
-#         self.image = self.frames[self.cur_frame]
-#         self.rect = self.rect.move(x, y)
-#
-#     def cut_sheet(self, sheet, columns, rows):
-#         self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
-#                                 sheet.get_height() // rows)
-#         for j in range(rows):
-#             for i in range(columns):
-#                 frame_location = (self.rect.w * i, self.rect.h * j)
-#                 self.frames.append(sheet.subsurface(pygame.Rect(
-#                     frame_location, self.rect.size)))
-#
-#     def update(self):
-#         self.cur_frame = (self.cur_frame + 1) % len(self.frames)
-#         self.image = self.frames[self.cur_frame]
+BACKGROUND_COLOR = "#004400"
+PLATFORM_WIDTH = 30
+PLATFORM_HEIGHT = 60
+PLATFORM_COLOR = "#FF6262"
 
 
 class Player:
@@ -89,7 +79,8 @@ class Player:
 
         copy_player_weapon = pygame.transform.rotate(weapon, angle)
         screen.blit(copy_player_weapon,
-                    (self.x + 45 - int(weapon.get_width() / 2), self.y + 45 - int(weapon.get_height() / 2)))
+                    (self.x + 45 - int(weapon.get_width() / 2),
+                     self.y + 45 - int(weapon.get_height() / 2)))
 
     def main(self, screen):
         if self.animation_count + 1 == 10:
@@ -105,8 +96,8 @@ class Player:
                     pygame.transform.flip(player_walk_image[self.animation_count], True, False),
                     (70, 70)), (self.x, self.y))
         else:
-            screen.blit(pygame.transform.scale(player_walk_image[0], (70, 70)), (self.x, self.y))
-
+            screen.blit(pygame.transform.scale(player_walk_image[0], (70, 70)),
+                        (self.x, self.y))
 
         self.weapon_player(screen)
 
@@ -127,8 +118,6 @@ class PlayerBullet:
         self.x_vel = math.cos(self.angle) * self.speed
         self.y_vel = math.sin(self.angle) * self.speed
 
-
-
     def main(self, screen):
         self.x -= int(self.x_vel)
         self.y -= int(self.y_vel)
@@ -145,10 +134,10 @@ class YetiEnimy:
         self.offset_y = random.randrange(-300, 300)
 
     def main(self, screen):
-        if self.animation_count + 0.2 >= 47:
+        if self.animation_count + 0.1 >= 47:
             self.animation_count = 0
         else:
-            self.animation_count += 0.2
+            self.animation_count += 0.1
 
         if self.reset_offset == 0:
             self.offset_x = random.randrange(-300, 300)
@@ -174,13 +163,13 @@ class YetiEnimy:
 
 enimies = [YetiEnimy(400, 400)]
 
-player = Player(400, 300, 40, 40)
-
 display_scroll = [0, 0]
 
 player_bulets = []
 
+player = Player(400, 300, 40, 40)
 while True:
+
     screen.fill((100, 255, 200))
 
     mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -189,13 +178,60 @@ while True:
         if event.type == pygame.QUIT:
             sys.exit()
             pygame.QUIT
+
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
                 player_bulets.append(PlayerBullet(player.x + 50, player.y + 50, mouse_x, mouse_y))
+    bg = pygame.Surface((1500, 850))  # Создание видимой поверхности
+    # будем использовать как фон
+    bg.fill(pygame.Color(BACKGROUND_COLOR))  # Заливаем поверхность сплошным цветом
+    level = ['----------------------------------------------------------------------------------------',
+             '----------------------------------------------------------------------------------------',
+             '----------------------######################################----------------------------',
+             '----------------------#..................*.................#----------------------------',
+             '----------------------#.....##.............................#----------------------------',
+             '----------------------#....................................#----------------------------',
+             '----------------------#............############............#----------------------------',
+             '----------------------#............#----------#.......*....#----------------------------',
+             '----------------------#...*........#----------#............#----------------------------',
+             '----------------------#............#----------#............###########################--',
+             '----------------------#.......##...#----------#......................................#--',
+             '-----##################............#----------#........##...........................##--',
+             '-----#...................*.........#----------#.................**......................',
+             '-----#............#................#----------#.....................................##--',
+             '-----#.......*.................*...#----------#.....*................................#--',
+             '-----#...#......####################----------########################################--',
+             '-----#..........#-----------------------------------------------------------------------',
+             '-----#....@.....#-----------------------------------------------------------------------',
+             '-----#..........#-----------------------------------------------------------------------',
+             '-----############-----------------------------------------------------------------------',
+             '----------------------------------------------------------------------------------------',
+             '----------------------------------------------------------------------------------------']
+    screen.blit(bg, (0, 0))  # Каждую итерацию необходимо всё перерисовывать
 
+    x = y = 0  # координаты
+    for row in level:  # вся строка
+        for col in row:  # каждый символ
+            if col == "-":
+                # создаем блок, заливаем его цветом и рисеум его
+                pf = pygame.Surface((PLATFORM_WIDTH, PLATFORM_HEIGHT))
+                pf.fill(pygame.Color(PLATFORM_COLOR))
+                screen.blit(pf, (x - display_scroll[0], y - display_scroll[1]))
+            if col == '#':
+                pf = pygame.Surface((PLATFORM_WIDTH, PLATFORM_HEIGHT))
+                pf.fill(pygame.Color('yellow'))
+                screen.blit(pf, (x - display_scroll[0], y - display_scroll[1]))
+            if col == '.':
+                pf = pygame.Surface((PLATFORM_WIDTH, PLATFORM_HEIGHT))
+                pf.fill(pygame.Color('white'))
+                screen.blit(pf, (x - display_scroll[0], y - display_scroll[1]))
+            x += PLATFORM_WIDTH  # блоки платформы ставятся на ширине блоков
+        y += PLATFORM_HEIGHT  # то же самое и с высотой
+        x = 0  # на каждой новой строчке
+    pygame.display.update()  #
     keys = pygame.key.get_pressed()
 
-    pygame.draw.rect(screen, 'pink', (100 - display_scroll[0], 100 - display_scroll[1], 20, 20))
+    pygame.draw.rect(screen, 'brown', (100 - display_scroll[0], 100 - display_scroll[1], 20, 20))
 
     if keys[pygame.K_w]:
         display_scroll[1] -= 5
@@ -233,6 +269,6 @@ while True:
     for model in enimies:
         model.main(screen)
 
-    clock.tick(80)
-
+    # clock.tick(0)
+    # pygame.display.flip()
     pygame.display.update()
