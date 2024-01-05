@@ -3,7 +3,6 @@ import random
 import sys
 import pygame
 import math
-import random
 
 # моргание происходит из-за отрисовки поля. поменять координаты местами у главного спрайта и остального поля
 
