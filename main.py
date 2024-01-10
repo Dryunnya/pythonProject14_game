@@ -8,8 +8,10 @@ import math
 
 
 pygame.init()
-size = WIDTH, HEIGHT = 1550, 800
-screen = pygame.display.set_mode(size)
+# size = WIDTH, HEIGHT = 1550, 800
+monitor_size = [pygame.display.Info().current_w, pygame.display.Info().current_h]
+DISPLAY_S = min(monitor_size)
+screen = pygame.display.set_mode(monitor_size, display=0)
 clock = pygame.time.Clock()
 
 player_walk_image = [pygame.image.load("project/walk1.png"), pygame.image.load("project/walk2.png"), pygame.image.load(
