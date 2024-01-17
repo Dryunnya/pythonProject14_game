@@ -1,25 +1,8 @@
 import pygame
 import sys
+from DBCon import DBCon
 
-
-# class Camera:
-#     def __init__(self, width, height):
-#         self.camera = pygame.Rect(0, 0, width, height)
-#         self.width = width
-#         self.height = height
-#
-#     def apply(self, player):
-#         return player.rect.move(self.camera.topleft)
-#
-#     def update(self, player):
-#         x = -player.rect.x + self.width // 2
-#         y = -player.rect.y + self.height // 2
-#
-#         # Limit camera movement to stay within the boundaries of the field
-#         x = min(0, x)  # Left
-#         y = min(0, y)  # Up
-#
-#         self.camera = pygame.Rect(x, y, self.width, self.height)
+DBCon()
 
 
 class Tile(pygame.sprite.Sprite):
