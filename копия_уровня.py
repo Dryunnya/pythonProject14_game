@@ -70,6 +70,9 @@ class Player(pygame.sprite.Sprite):
             self.image = pygame.transform.flip(player_image[self.animation_count], self.direction == -1, False)
 
 
+player_spr = None
+
+
 class Field:
     def __init__(self, file_path):
         self.field_data = self.load_level(file_path)
@@ -82,6 +85,7 @@ class Field:
         return list(map(lambda x: x.ljust(max_width, '-'), level_map))
 
     def generate_level(self):
+        global player_spr
         for y, row in enumerate(self.field_data):
             for x, cell in enumerate(row):
                 if self.field_data[y][x] == '.':
@@ -92,8 +96,23 @@ class Field:
                     Tile('back', x, y)
                 elif self.field_data[y][x] == '@':
                     Tile('empty', x, y)
+                    player_spr = Player(x * self.sprite_size, y * self.sprite_size)  # Create a Player object
+                    player_group.add(player_spr)
+                elif self.field_data[y][x] == '*':
+                    Tile('over', x, y)
+                elif self.field_data[y][x] == 't':
+                    Tile('over', x, y)
+                    Tile('plant', x, y)
+                elif self.field_data[y][x] == 'F':
+                    Tile('over', x, y)
+                    Tile('decor', x, y)
+                elif self.field_data[y][x] == 'P':
+                    Tile('over', x, y)
+                    Tile('tree', x, y)
+                # elif self.field_data[y][x] == '@':
+                #     Player(x * self.sprite_size, y * self.sprite_size)
 
-    # def get_size(self):
+                # def get_size(self):
     #     return len(self.field_data[0]) * self.sprite_size, len(self.field_data) * self.sprite_size
 
 
@@ -135,9 +154,14 @@ def error_screen():
 
 
 def start_screen():
-    fon = pygame.transform.scale(load_image('Background02.png'), (width, height))
-    screen.blit(fon, (0, 0))
+    fon1 = pygame.transform.scale(load_image('Background02.png'), (width, height))
+    screen.blit(fon1, (0, 0))
 
+    fon2 = pygame.transform.scale(load_image('Muntain.png'), (width, height))
+    screen.blit(fon2, (0, 0))
+
+    fon3 = pygame.transform.scale(load_image('Cloud.png'), (width, height))
+    screen.blit(fon3, (0, 0))
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -148,7 +172,8 @@ def start_screen():
         clock.tick(FPS)
 
 
-filename = str(input('название файла: '))
+# filename = str(input('название файла: '))
+filename = 'pole.txt'
 pygame.init()
 size = width, height = 1500, 800
 
@@ -160,7 +185,11 @@ start_screen()
 
 tile_images = {'wall': pygame.transform.scale(load_image('bricks.jpg'), (50, 50)),
                'empty': pygame.transform.scale(load_image('floor.png'), (50, 50)),
-               'back': pygame.transform.scale(load_image('fon_colour.png'), (50, 50))}
+               'back': pygame.transform.scale(load_image('fon_colour.png'), (50, 50)),
+               'over': pygame.transform.scale(load_image('sand.png'), (50, 50)),
+               'plant': pygame.transform.scale(load_image('tree.png'), (45, 45)),
+               'decor': pygame.transform.scale(load_image('flower.png'), (45, 45)),
+               'tree': pygame.transform.scale(load_image('pink_tree.png'), (45, 45))}
 player_image = [pygame.transform.scale(load_image(f"walk{i}.png"), (70, 70)) for i in range(1, 11)]
 # player_image = [pygame.transform.scale(load_image("walk1.png"), pygame.transform.scale(load_image("walk2.png"), pygame.transform.scale(load_image("walk3.png"),
 #                 pygame.transform.scale(load_image("walk4.png"), pygame.transform.scale(load_image("walk5.png"), pygame.transform.scale(load_image("walk6.png"),
@@ -176,8 +205,8 @@ field_group = pygame.sprite.Group()  # New group for the field
 
 # ... (existing code)
 
-player_spr = Player(width // 2, height // 2)
-player_group.add(player_spr)
+# player_spr = Player(width // 2, height // 2)
+# player_group.add(player_spr)
 
 fields = Field(filename)
 fields.generate_level()
@@ -207,6 +236,12 @@ while True:
     # # обновляем положение всех спрайтов
     # for sprite in all_sprites:
     #     camera.apply(sprite)
+    player_center = player_spr.rect.center
+    screen_center = (width // 2, height // 2)
+    screen_x, screen_y = screen_center[0] - player_center[0], screen_center[1] - player_center[1]
+    for sprite in all_sprites:
+        sprite.rect.x += screen_x
+        sprite.rect.y += screen_y
     all_sprites.update()
     all_sprites.draw(screen)
     player_group.draw(screen)
