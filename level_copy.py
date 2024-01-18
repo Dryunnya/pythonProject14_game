@@ -246,7 +246,7 @@ for sprite in tiles_group:
 def update_hp_text(player_hp):
     font = pygame.font.Font(None, 36)
     if player_hp <= 80 and player_hp >= 40:
-        text_color = (255, 10, 10)
+        text_color = (255, 205, 255)
     elif player_hp <= 40:
         text_color = (255, 0, 0)
     else:
