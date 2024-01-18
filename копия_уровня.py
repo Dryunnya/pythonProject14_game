@@ -1,25 +1,7 @@
 import pygame
 import sys
-
-
-# class Camera:
-#     def __init__(self, width, height):
-#         self.camera = pygame.Rect(0, 0, width, height)
-#         self.width = width
-#         self.height = height
-#
-#     def apply(self, player):
-#         return player.rect.move(self.camera.topleft)
-#
-#     def update(self, player):
-#         x = -player.rect.x + self.width // 2
-#         y = -player.rect.y + self.height // 2
-#
-#         # Limit camera movement to stay within the boundaries of the field
-#         x = min(0, x)  # Left
-#         y = min(0, y)  # Up
-#
-#         self.camera = pygame.Rect(x, y, self.width, self.height)
+import random
+import math
 
 
 class Tile(pygame.sprite.Sprite):
@@ -39,6 +21,7 @@ class Player(pygame.sprite.Sprite):
         self.pos_y = pos_y
         self.speed = 5
         self.direction = 1
+        self.hp = 100  # Начальное здоровье
 
     def update(self):
         keys = pygame.key.get_pressed()
@@ -69,8 +52,55 @@ class Player(pygame.sprite.Sprite):
             self.animation_count = (self.animation_count + 1) % len(player_image)
             self.image = pygame.transform.flip(player_image[self.animation_count], self.direction == -1, False)
 
+        enemy_collisions = pygame.sprite.spritecollide(self, enemi_group, False)
+        for enemy in enemy_collisions:
+            self.hp -= 0.1  # Уменьшение здоровья при столкновении с врагом
+
+        # Проверка на отрицательное здоровье (если нужно)
+        if self.hp < 0:
+            self.hp = 0  # З
+
+
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self, pos_x, pos_y, image):
+        super().__init__(enemi_group, all_sprites)
+        self.animation_count = 0
+        self.image = image
+        self.rect = self.image.get_rect()
+        self.rect.x = pos_x
+        self.rect.y = pos_y
+        self.speed = 5
+        self.reset_offset = 0
+        self.offset_x = random.randrange(-300, 300)
+        self.offset_y = random.randrange(-300, 300)
+
+    def update(self):
+        # Логика движения врага
+        if self.reset_offset == 0:
+            self.offset_x = random.randrange(-300, 300)
+            self.offset_y = random.randrange(-300, 300)
+            self.reset_offset = random.randrange(80, 150)
+        else:
+            self.reset_offset -= 1
+
+            if player_spr.pos_x + self.offset_x > self.rect.x:
+                self.rect.x += 1
+            else:
+                self.rect.x -= 1
+
+            if player_spr.pos_y + self.offset_y > self.rect.y:
+                self.rect.y += 1
+            else:
+                self.rect.y -= 1
+
+        # Обновление анимации врага
+        self.animation_count = (self.animation_count + 1) % len(enemi_image)
+        self.image = enemi_image[self.animation_count]
+
 
 player_spr = None
+enemy_spr = None
+display_scroll = [0, 0]
 
 
 class Field:
@@ -85,7 +115,7 @@ class Field:
         return list(map(lambda x: x.ljust(max_width, '-'), level_map))
 
     def generate_level(self):
-        global player_spr
+        global player_spr, enemy_spr
         for y, row in enumerate(self.field_data):
             for x, cell in enumerate(row):
                 if self.field_data[y][x] == '.':
@@ -109,11 +139,13 @@ class Field:
                 elif self.field_data[y][x] == 'P':
                     Tile('over', x, y)
                     Tile('tree', x, y)
-                # elif self.field_data[y][x] == '@':
-                #     Player(x * self.sprite_size, y * self.sprite_size)
+                elif self.field_data[y][x] == '1':
+                    Tile('empty', x, y)
+                    enemy_image = pygame.transform.scale(load_image("yeti (47).png"), (70, 70))
 
-                # def get_size(self):
-    #     return len(self.field_data[0]) * self.sprite_size, len(self.field_data) * self.sprite_size
+                    # Создание объекта Enemy с загруженным изображением
+                    enemy_spr = Enemy(x * self.sprite_size, y * self.sprite_size, enemy_image)
+                    enemi_group.add(enemy_spr)
 
 
 def load_image(filename):
@@ -191,10 +223,7 @@ tile_images = {'wall': pygame.transform.scale(load_image('bricks.jpg'), (50, 50)
                'decor': pygame.transform.scale(load_image('flower.png'), (45, 45)),
                'tree': pygame.transform.scale(load_image('pink_tree.png'), (45, 45))}
 player_image = [pygame.transform.scale(load_image(f"walk{i}.png"), (70, 70)) for i in range(1, 11)]
-# player_image = [pygame.transform.scale(load_image("walk1.png"), pygame.transform.scale(load_image("walk2.png"), pygame.transform.scale(load_image("walk3.png"),
-#                 pygame.transform.scale(load_image("walk4.png"), pygame.transform.scale(load_image("walk5.png"), pygame.transform.scale(load_image("walk6.png"),
-#                 pygame.transform.scale(load_image("walk7.png"), pygame.transform.scale(load_image("walk8.png"),
-#                 pygame.transform.scale(load_image("walk9.png"), pygame.transform.scale(load_image("walk10.png")]
+enemi_image = [pygame.transform.scale(load_image(f"yeti ({i}).png"), (70, 70)) for i in range(1, 48)]
 
 tile_width = tile_height = 50
 
@@ -202,8 +231,7 @@ all_sprites = pygame.sprite.Group()
 tiles_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
 field_group = pygame.sprite.Group()  # New group for the field
-
-# ... (existing code)
+enemi_group = pygame.sprite.Group()
 
 # player_spr = Player(width // 2, height // 2)
 # player_group.add(player_spr)
@@ -214,7 +242,42 @@ fields.generate_level()
 for sprite in tiles_group:
     field_group.add(sprite)
 
-    # camera = Camera(width // 2, height // 2)
+
+def update_hp_text(player_hp):
+    font = pygame.font.Font(None, 36)
+    if player_hp <= 80 and player_hp >= 40:
+        text_color = (255, 10, 10)
+    elif player_hp <= 40:
+        text_color = (255, 0, 0)
+    else:
+        text_color = (255, 255, 255)
+
+    player_hp = '%.1f' % player_hp
+    text = font.render(f'HP: {player_hp}', True, text_color)
+    screen.blit(text, (10, 10))
+    screen.blit(text, (10, 10))
+
+
+restart_count = 0  # Variable to count restarts
+
+
+def restart_game():
+    global player_spr, enemy_spr, display_scroll, restart_count
+
+    restart_count += 1
+
+    player_spr.hp = 100
+
+    fields.generate_level()
+
+
+font_restart = pygame.font.Font(None, 36)
+
+
+def update_restart_text(count):
+    text_restart = font_restart.render(f'Restarts: {count}', True, (255, 255, 255))
+    screen.blit(text_restart, (10, 50))
+
 
 while True:
     for event in pygame.event.get():
@@ -222,20 +285,9 @@ while True:
             terminate()
 
     player_group.update()
-
-    # Обновление позиции игрока
-    player_spr.update()
-
-    # Обновление камеры, привязанной к игроку
-    # camera.update(player_spr)
-
-    # Очистка экрана
+    enemi_group.update()  # Обновление врага
     screen.fill((0, 0, 0))
-    # изменяем ракурс камеры
-    # camera.update(player_spr)
-    # # обновляем положение всех спрайтов
-    # for sprite in all_sprites:
-    #     camera.apply(sprite)
+
     player_center = player_spr.rect.center
     screen_center = (width // 2, height // 2)
     screen_x, screen_y = screen_center[0] - player_center[0], screen_center[1] - player_center[1]
@@ -245,5 +297,12 @@ while True:
     all_sprites.update()
     all_sprites.draw(screen)
     player_group.draw(screen)
+    enemi_group.draw(screen)  # Отрисовка врага
+
+    update_hp_text(player_spr.hp)
+    if player_spr.hp == 0:
+        restart_game()
+    update_restart_text(restart_count)
+
     pygame.display.flip()
-    clock.tick(60)
+    clock.tick(30)
