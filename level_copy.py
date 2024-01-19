@@ -3,6 +3,8 @@ import sys
 import random
 import math
 
+killed_enemies_count = 0
+
 
 class Tile(pygame.sprite.Sprite):
     def __init__(self, tile_type, pos_x, pos_y):
@@ -283,7 +285,6 @@ enemi_group = pygame.sprite.Group()
 weapon_group = pygame.sprite.Group()
 explosion_group = pygame.sprite.Group()
 
-
 # player_spr = Player(width // 2, height // 2)
 # player_group.add(player_spr)
 
@@ -329,6 +330,14 @@ def update_restart_text(count):
     text_restart = font_restart.render(f'Restarts: {count}', True, (255, 255, 255))
     screen.blit(text_restart, (10, 50))
 
+font_killed_enemies = pygame.font.Font(None, 36)
+
+def update_killed_enemies_text(count):
+    text_killed_enemies = font_killed_enemies.render(f'Killed Enemies: {count}', True, (255, 255, 255))
+    screen.blit(text_killed_enemies, (10, 90))
+
+# Inside the game loop
+
 
 while True:
     for event in pygame.event.get():
@@ -363,6 +372,7 @@ while True:
                 explosion = Explosion(enemy.rect.x, enemy.rect.y)
                 explosion_group.add(explosion)
                 enemy.kill()
+                killed_enemies_count += 1  # Increment the killed enemies count
 
     all_sprites.update()
     all_sprites.draw(screen)
@@ -375,6 +385,7 @@ while True:
     if player_spr.hp == 0:
         restart_game()
     update_restart_text(restart_count)
+    update_killed_enemies_text(killed_enemies_count)
 
     pygame.display.flip()
     clock.tick(30)

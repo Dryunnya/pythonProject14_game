@@ -159,6 +159,7 @@ class YetiEnimy:
 
         screen.blit(pygame.transform.scale(yeti_animation[int(self.animation_count)], (50, 50)),
                     (self.x - display_scroll[0], self.y - display_scroll[1]))
+        # print(display_scroll[0], display_scroll[1])
         print(pygame.time.get_ticks())
 
 
