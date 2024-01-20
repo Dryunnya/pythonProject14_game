@@ -112,7 +112,6 @@ class Weapon(pygame.sprite.Sprite):
         if self.rect.x > width or self.rect.x < 0 or self.rect.y > height or self.rect.y < 0:
             self.kill()
 
-
         # Rotate the image based on the direction
         self.image = pygame.transform.rotate(self.original_image, math.degrees(-self.direction))
         wall_hit_list = pygame.sprite.spritecollide(self, wall_group, False)
@@ -133,16 +132,21 @@ class Enemy(pygame.sprite.Sprite):
         self.offset_x = random.randrange(-300, 300)
         self.offset_y = random.randrange(-300, 300)
         self.hp = 100
+        self.shoot_cooldown = 60  # Set the cooldown time between shots
+        self.shoot_timer = 0
 
     def update(self):
         # Calculate the target position as the center of the screen
         target_x, target_y = width // 2, height // 2
-
-        # Логика движения врага
         distance_to_player = math.hypot(target_x - self.rect.x, target_y - self.rect.y)
 
         # Check if the player is within a certain radius before starting movement
         if distance_to_player < 300:
+            # if self.shoot_timer <= 0:
+            #     Weapon(self.rect.centerx, self.rect.centery, target_x, target_y)
+            #     self.shoot_timer = self.shoot_cooldown
+            # else:
+            #     self.shoot_timer -= 1
             # Логика движения врага
             if self.reset_offset == 0:
                 self.offset_x = random.randrange(-300, 300)
