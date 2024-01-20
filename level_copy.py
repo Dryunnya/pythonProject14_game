@@ -100,7 +100,7 @@ class Player(pygame.sprite.Sprite):
             display_buttons()
 
         for enemy in enemy_collisions:
-            self.hp -= 10
+            self.hp -= 1
             ost_hp = self.hp
         # Проверка на отрицательное здоровье (если нужно)
         if self.hp < 0:
@@ -253,6 +253,8 @@ class Field:
                     player_group.add(player_spr)
                 elif self.field_data[y][x] == '*':
                     Tile('over', x, y)
+                elif self.field_data[y][x] == '6':
+                    Tile('hot', x, y)
                 elif self.field_data[y][x] == 'C':
                     Tile('island_floor_stone', x, y)
                     Tile('prize', x, y)
@@ -335,7 +337,7 @@ def start_screen():
 
 
 # filename = str(input('название файла: '))
-filename = 'pole.txt'
+filename = 'second_pole.txt'
 pygame.init()
 size = width, height = 1500, 800
 
@@ -351,6 +353,7 @@ tile_images = {'wall': pygame.transform.scale(load_image('bricks.jpg'), (50, 50)
                'winner_b': pygame.transform.scale(load_image('black_block.png'), (50, 50)),
                'back': pygame.transform.scale(load_image('fon_colour.png'), (50, 50)),
                'over': pygame.transform.scale(load_image('sand.png'), (50, 50)),
+               'hot': pygame.transform.scale(load_image('lava.png'), (50, 50)),
                'island_fence': pygame.transform.scale(load_image('fence_3.png'), (50, 50)),
                'island_square_fence': pygame.transform.scale(load_image('square_fence.png'), (50, 50)),
                'island_floor_stone': pygame.transform.scale(load_image('floor_stone.png'), (50, 50)),
