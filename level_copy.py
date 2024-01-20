@@ -2,8 +2,11 @@ import pygame
 import sys
 import random
 import math
+from pygame.locals import *
+import time
 
 killed_enemies_count = 0
+ost_hp = 0
 
 
 class Tile(pygame.sprite.Sprite):
@@ -14,6 +17,8 @@ class Tile(pygame.sprite.Sprite):
 
 
 class Player(pygame.sprite.Sprite):
+    global ost_hp
+
     def __init__(self, pos_x, pos_y):
         super().__init__(player_group, all_sprites)
         self.animation_count = 0
@@ -27,37 +32,62 @@ class Player(pygame.sprite.Sprite):
 
     def update(self):
         keys = pygame.key.get_pressed()
+        collision_wall = pygame.sprite.groupcollide(player_group, wall_group, False, False)
+
         if keys[pygame.K_a]:
-            for sprite in all_sprites:
-                sprite.rect.x += self.speed
-            self.rect.x -= self.speed
-            self.direction = -1
-            self.animation_count = (self.animation_count + 1) % len(player_image)
-            self.image = pygame.transform.flip(player_image[self.animation_count], self.direction == -1, False)
+            if not collision_wall:
+                for sprite in all_sprites:
+                    sprite.rect.x += self.speed
+                self.rect.x -= self.speed
+                self.direction = -1
+                self.animation_count = (self.animation_count + 1) % len(player_image)
+                self.image = pygame.transform.flip(player_image[self.animation_count], self.direction == -1, False)
+                return
+            else:
+                self.rect.x += 50
+                return
+
         if keys[pygame.K_d]:
-            for sprite in all_sprites:
-                sprite.rect.x -= self.speed
-            self.rect.x += self.speed
-            self.direction = 1
-            self.animation_count = (self.animation_count + 1) % len(player_image)
-            self.image = pygame.transform.flip(player_image[self.animation_count], self.direction == -1, False)
+            if not collision_wall:
+                for sprite in all_sprites:
+                    sprite.rect.x -= self.speed
+                self.rect.x += self.speed
+                self.direction = 1
+                self.animation_count = (self.animation_count + 1) % len(player_image)
+                self.image = pygame.transform.flip(player_image[self.animation_count], self.direction == -1, False)
+                return
+            else:
+                self.rect.x -= 50
+                return
+
         if keys[pygame.K_w]:
-            for sprite in all_sprites:
-                sprite.rect.y += self.speed
-            self.rect.y -= self.speed
-            self.animation_count = (self.animation_count + 1) % len(player_image)
-            self.image = pygame.transform.flip(player_image[self.animation_count], self.direction == -1, False)
+            if not collision_wall:
+                for sprite in all_sprites:
+                    sprite.rect.y += self.speed
+                self.rect.y -= self.speed
+                self.animation_count = (self.animation_count + 1) % len(player_image)
+                self.image = pygame.transform.flip(player_image[self.animation_count], self.direction == -1, False)
+                return
+            else:
+                self.rect.y += 50
+                return
+
         if keys[pygame.K_s]:
-            for sprite in all_sprites:
-                sprite.rect.y -= self.speed
-            self.rect.y += self.speed
-            self.animation_count = (self.animation_count + 1) % len(player_image)
-            self.image = pygame.transform.flip(player_image[self.animation_count], self.direction == -1, False)
+            if not collision_wall:
+                for sprite in all_sprites:
+                    sprite.rect.y -= self.speed
+                self.rect.y += self.speed
+                self.animation_count = (self.animation_count + 1) % len(player_image)
+                self.image = pygame.transform.flip(player_image[self.animation_count], self.direction == -1, False)
+                return
+            else:
+                self.rect.y -= 50
+                return
 
         enemy_collisions = pygame.sprite.spritecollide(self, enemi_group, False)
         for enemy in enemy_collisions:
-            self.hp -= 0.5  # Уменьшение здоровья при столкновении с врагом
-
+            self.hp -= 10
+            ost_hp = self.hp
         # Проверка на отрицательное здоровье (если нужно)
         if self.hp < 0:
             self.hp = 0
@@ -80,10 +110,14 @@ class Weapon(pygame.sprite.Sprite):
         self.rect.y += self.speed * math.sin(self.direction)
 
         if self.rect.x > width or self.rect.x < 0 or self.rect.y > height or self.rect.y < 0:
-            self.kill()  # Remove bullets when they go off-screen
+            self.kill()
+
 
         # Rotate the image based on the direction
         self.image = pygame.transform.rotate(self.original_image, math.degrees(-self.direction))
+        wall_hit_list = pygame.sprite.spritecollide(self, wall_group, False)
+        for wall in wall_hit_list:
+            self.kill()
 
 
 class Enemy(pygame.sprite.Sprite):
@@ -101,23 +135,33 @@ class Enemy(pygame.sprite.Sprite):
         self.hp = 100
 
     def update(self):
+        # Calculate the target position as the center of the screen
+        target_x, target_y = width // 2, height // 2
+
         # Логика движения врага
-        if self.reset_offset == 0:
-            self.offset_x = random.randrange(-300, 300)
-            self.offset_y = random.randrange(-300, 300)
-            self.reset_offset = random.randrange(80, 150)
-        else:
-            self.reset_offset -= 1
+        distance_to_player = math.hypot(target_x - self.rect.x, target_y - self.rect.y)
 
-            if player_spr.pos_x + self.offset_x > self.rect.x:
-                self.rect.x += 1
+        # Check if the player is within a certain radius before starting movement
+        if distance_to_player < 300:
+            # Логика движения врага
+            if self.reset_offset == 0:
+                self.offset_x = random.randrange(-300, 300)
+                self.offset_y = random.randrange(-300, 300)
+                self.reset_offset = random.randrange(80, 150)
             else:
-                self.rect.x -= 1
+                self.reset_offset -= 1
 
-            if player_spr.pos_y + self.offset_y > self.rect.y:
-                self.rect.y += 1
-            else:
-                self.rect.y -= 1
+                # Check for collision with walls
+                if not pygame.sprite.spritecollideany(self, wall_group, collided=pygame.sprite.collide_rect):
+                    if target_x > self.rect.x:
+                        self.rect.x += 1
+                    else:
+                        self.rect.x -= 1
+
+                    if target_y > self.rect.y:
+                        self.rect.y += 1
+                    else:
+                        self.rect.y -= 1
 
         # Обновление анимации врага
         self.animation_count = (self.animation_count + 1) % len(enemi_image)
@@ -125,27 +169,27 @@ class Enemy(pygame.sprite.Sprite):
 
 
 class Explosion(pygame.sprite.Sprite):
-    def __init__(self, x, y):
+    def __init__(self, x, y, delay=0.5):  # Add a 'delay' parameter with a default value
         super().__init__()
-        self.images = [pygame.transform.scale(load_image('Sunrise.png'), (80, 80))]  # List to store animation frames
-        # Load your explosion images into self.images
-        for i in range(5):  # Assuming you have 5 frames
-            image = pygame.Surface((30, 30))  # Replace with the actual size of your explosion images
-            image.fill((255, 255, 0))  # Yellow color, you can replace with actual explosion image
-            self.images.append(image)
+
+        self.images = [pygame.transform.scale(load_image('krest.png'), (80, 80))]
         self.index = 0
         self.image = self.images[self.index]
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
+        self.delay = delay  # Store the delay value
+        self.start_time = time.time()  # Record the start time
 
     def update(self):
-        # Update the animation frames
-        self.index += 1
-        if self.index >= len(self.images):
-            self.kill()  # Remove the explosion sprite when the animation is complete
-        else:
-            self.image = self.images[self.index]
+        current_time = time.time()
+
+        if current_time - self.start_time >= self.delay:
+            self.index += 1
+            if self.index >= len(self.images):
+                self.kill()
+            else:
+                self.image = self.images[self.index]
 
 
 player_spr = None
@@ -170,16 +214,30 @@ class Field:
             for x, cell in enumerate(row):
                 if self.field_data[y][x] == '.':
                     Tile('empty', x, y)
+                elif self.field_data[y][x] == 'h':
+                    Tile('winner_h', x, y)
+                elif self.field_data[y][x] == 'b':
+                    Tile('winner_b', x, y)
                 elif self.field_data[y][x] == '#':
                     Tile('wall', x, y)
+                    wall_group.add(Tile('wall', x, y))
                 elif self.field_data[y][x] == '-':
                     Tile('back', x, y)
+                elif self.field_data[y][x] == '+':
+                    Tile('island_fence', x, y)
+                elif self.field_data[y][x] == '^':
+                    Tile('island_square_fence', x, y)
+                elif self.field_data[y][x] == 'a':
+                    Tile('island_floor_stone', x, y)
                 elif self.field_data[y][x] == '@':
                     Tile('empty', x, y)
                     player_spr = Player(x * self.sprite_size, y * self.sprite_size)  # Create a Player object
                     player_group.add(player_spr)
                 elif self.field_data[y][x] == '*':
                     Tile('over', x, y)
+                elif self.field_data[y][x] == 'C':
+                    Tile('island_floor_stone', x, y)
+                    Tile('prize', x, y)
                 elif self.field_data[y][x] == 't':
                     Tile('over', x, y)
                     Tile('plant', x, y)
@@ -189,6 +247,9 @@ class Field:
                 elif self.field_data[y][x] == 'P':
                     Tile('over', x, y)
                     Tile('tree', x, y)
+                elif self.field_data[y][x] == '/':
+                    Tile('over', x, y)
+                    Tile('road', x, y)
                 elif self.field_data[y][x] == '1':
                     Tile('empty', x, y)
                     enemy_image = pygame.transform.scale(load_image("yeti (47).png"), (70, 70))
@@ -267,13 +328,21 @@ start_screen()
 
 tile_images = {'wall': pygame.transform.scale(load_image('bricks.jpg'), (50, 50)),
                'empty': pygame.transform.scale(load_image('floor.png'), (50, 50)),
+               'winner_h': pygame.transform.scale(load_image('white_block.png'), (50, 50)),
+               'winner_b': pygame.transform.scale(load_image('black_block.png'), (50, 50)),
                'back': pygame.transform.scale(load_image('fon_colour.png'), (50, 50)),
                'over': pygame.transform.scale(load_image('sand.png'), (50, 50)),
+               'island_fence': pygame.transform.scale(load_image('fence_3.png'), (50, 50)),
+               'island_square_fence': pygame.transform.scale(load_image('square_fence.png'), (50, 50)),
+               'island_floor_stone': pygame.transform.scale(load_image('floor_stone.png'), (50, 50)),
+               'prize': pygame.transform.scale(load_image('trophy-gold.png'), (50, 50)),
+               'road': pygame.transform.scale(load_image('carpet.jpg'), (50, 40)),
                'plant': pygame.transform.scale(load_image('tree.png'), (45, 45)),
                'decor': pygame.transform.scale(load_image('flower.png'), (45, 45)),
+               'island_flood': pygame.transform.scale(load_image('flower.png'), (45, 45)),
                'tree': pygame.transform.scale(load_image('pink_tree.png'), (45, 45))}
-player_image = [pygame.transform.scale(load_image(f"walk{i}.png"), (70, 70)) for i in range(1, 11)]
-enemi_image = [pygame.transform.scale(load_image(f"yeti ({i}).png"), (70, 70)) for i in range(1, 48)]
+player_image = [pygame.transform.scale(load_image(f"walk{i}.png"), (60, 60)) for i in range(1, 11)]
+enemi_image = [pygame.transform.scale(load_image(f"yeti ({i}).png"), (50, 50)) for i in range(1, 48)]
 
 tile_width = tile_height = 50
 
@@ -284,6 +353,7 @@ field_group = pygame.sprite.Group()
 enemi_group = pygame.sprite.Group()
 weapon_group = pygame.sprite.Group()
 explosion_group = pygame.sprite.Group()
+wall_group = pygame.sprite.Group()
 
 # player_spr = Player(width // 2, height // 2)
 # player_group.add(player_spr)
@@ -296,7 +366,7 @@ for sprite in tiles_group:
 
 
 def update_hp_text(player_hp):
-    font = pygame.font.Font(None, 36)
+    font = pygame.font.Font('project/one piece font.ttf', 36)
     if player_hp <= 80 and player_hp >= 40:
         text_color = (255, 205, 255)
     elif player_hp <= 40:
@@ -310,44 +380,175 @@ def update_hp_text(player_hp):
     screen.blit(text, (10, 10))
 
 
-restart_count = 0  # Variable to count restarts
+restart_limit = 1
+
+font = pygame.font.SysFont('project/one piece font.ttf', 40)
+objects = []
 
 
-def restart_game():
-    global player_spr, enemy_spr, display_scroll, restart_count
+class Button():
+    def __init__(self, x, y, width, height, buttonText='Button', onclickFunction=None, onePress=False):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.onclickFunction = onclickFunction
+        self.onePress = onePress
 
-    restart_count += 1
+        self.fillColors = {
+            'normal': '#fff490',
+            'hover': '#666666',
+            'pressed': '#333333',
+        }
 
-    player_spr.hp = 100
+        self.buttonSurface = pygame.Surface((self.width, self.height))
+        self.buttonRect = pygame.Rect(self.x, self.y, self.width, self.height)
 
-    fields.generate_level()
+        self.buttonSurf = font.render(buttonText, True, (20, 20, 20))
+
+        self.alreadyPressed = False
+
+        objects.append(self)
+
+    def process(self):
+
+        mousePos = pygame.mouse.get_pos()
+
+        self.buttonSurface.fill(self.fillColors['normal'])
+        if self.buttonRect.collidepoint(mousePos):
+            self.buttonSurface.fill(self.fillColors['hover'])
+
+            if pygame.mouse.get_pressed(num_buttons=3)[0]:
+                self.buttonSurface.fill(self.fillColors['pressed'])
+
+                if self.onePress:
+                    self.onclickFunction()
+
+                elif not self.alreadyPressed:
+                    self.onclickFunction()
+                    self.alreadyPressed = True
+
+            else:
+                self.alreadyPressed = False
+
+        self.buttonSurface.blit(self.buttonSurf, [
+            self.buttonRect.width / 2 - self.buttonSurf.get_rect().width / 2,
+            self.buttonRect.height / 2 - self.buttonSurf.get_rect().height / 2
+        ])
+        screen.blit(self.buttonSurface, self.buttonRect)
 
 
-font_restart = pygame.font.Font(None, 36)
+amount = 0
 
+font_killed_enemies = pygame.font.Font('project/one piece font.ttf', 36)
 
-def update_restart_text(count):
-    text_restart = font_restart.render(f'Restarts: {count}', True, (255, 255, 255))
-    screen.blit(text_restart, (10, 50))
-
-font_killed_enemies = pygame.font.Font(None, 36)
 
 def update_killed_enemies_text(count):
+    global amount
     text_killed_enemies = font_killed_enemies.render(f'Killed Enemies: {count}', True, (255, 255, 255))
-    screen.blit(text_killed_enemies, (10, 90))
+    screen.blit(text_killed_enemies, (10, 50))
+    amount = count
 
-# Inside the game loop
+
+is_window_open = True
+game_over = False
+start_time = pygame.time.get_ticks()
+current_time = 0
+
+
+def display_buttons():
+    global is_window_open, game_over
+    pygame.init()
+    screen = pygame.display.set_mode((1500, 800))
+    pygame.display.set_caption('Game Window')
+
+    font = pygame.font.Font('project/one piece font.ttf', 36)  # Добавлен шрифт
+
+    save_button = Button(200, 100, 400, 100, 'Save', saving_in_bd)
+    quit_button = Button(200, 600, 400, 100, 'Quit', terminate)
+
+    while is_window_open:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                is_window_open = False
+                terminate()
+
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                # Process buttons' events
+                for button in [save_button, quit_button]:
+                    button.process()
+        current_time = (pygame.time.get_ticks() - start_time) // 1000  # в секундах
+
+        end_fon1 = pygame.transform.scale(load_image('end_mountain (1).png'), (width, height))
+        screen.blit(end_fon1, (0, 0))
+
+        end_fon2 = pygame.transform.scale(load_image('end_mountain (2).png'), (width, height))
+        screen.blit(end_fon2, (0, 0))
+
+        end_fon3 = pygame.transform.scale(load_image('end_mountain (3).png'), (width, height))
+        screen.blit(end_fon3, (0, 0))
+
+        end_fon4 = pygame.transform.scale(load_image('end_mountain (4).png'), (width, height))
+        screen.blit(end_fon4, (0, 0))
+
+        end_fon5 = pygame.transform.scale(load_image('end_mountain (5).png'), (width, height))
+        screen.blit(end_fon5, (0, 0))
+
+        # Вывод количества набранных очков и времени прохождения
+        score_text = font.render(f"Score: {amount}", True, ('#fff490'))
+        time_text = font.render(f"Time: {current_time} seconds", True, ('#fff490'))
+        health_text = font.render(f"HP: {ost_hp}", True, ('#fff490'))
+        screen.blit(score_text, (20, 20))
+        screen.blit(time_text, (20, 60))
+        screen.blit(health_text, (20, 100))
+
+        save_button.process()
+        quit_button.process()
+        pygame.display.flip()
+
+
+# Сенина база данных: в ней хранятся количество убитых врагов, здоровье и время, за которое была пройдена игра
+# функция вычисление кличества убитых 428 строчка/amount
+# здоровье: ost_hp
+# время: current_time
+def saving_in_bd():
+    pass
+
+
+# restart_count = 0
+
+# def restart_game():
+#     global restart_count
+#
+#     restart_count += 1
+#
+#     player_spr.hp = 100
+
+
+# font_restart = pygame.font.Font('project/one piece font.ttf', 36)
+
+
+# def update_restart_text(count):
+#     text_restart = font_restart.render(f'Restarts: {count}', True, (255, 255, 255))
+#     screen.blit(text_restart, (10, 50))
 
 
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             terminate()
+
+
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:  # Left mouse button click
             mouse_position = pygame.mouse.get_pos()
             # Shoot bullets towards the mouse click position
             weapon = Weapon(player_spr.rect, mouse_position)
             weapon_group.add(weapon)
+
+            pos = pygame.mouse.get_pos()
+
+            for object in objects:
+                object.process()
 
     player_group.update()
     weapon_group.update()
@@ -383,8 +584,9 @@ while True:
 
     update_hp_text(player_spr.hp)
     if player_spr.hp == 0:
-        restart_game()
-    update_restart_text(restart_count)
+        display_buttons()  # Call the function to display buttons in a new window
+
+    # update_restart_text(restart_count)
     update_killed_enemies_text(killed_enemies_count)
 
     pygame.display.flip()
