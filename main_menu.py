@@ -54,29 +54,6 @@ display = pygame.display.set_mode(monitor_size, display=0)
 
 clock = pygame.time.Clock()
 
-all_time = 0
-mouse_pos = (0, 0)
-score = 0
-
-size = 0
-
-cell_s = 100
-half = cell_s / 2
-quarter = cell_s / 4
-
-arrow_size = (cell_s, cell_s * 3 // 8)
-cam_dx = 0
-cam_dy = 0
-
-last_given_uid = -1
-forbidden_damages = []
-
-projectiles = []
-temp_text = []
-mag_circles = []
-locations = dict()
-locations_names = []
-
 theme = pygame_menu.themes.THEME_GREEN.copy()
 theme.title_background_color = 50, 50, 50
 theme.title_font_color = 59, 215, 5
