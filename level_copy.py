@@ -85,6 +85,12 @@ class Player(pygame.sprite.Sprite):
                 return
 
         enemy_collisions = pygame.sprite.spritecollide(self, enemi_group, False)
+        trophy_collisions = pygame.sprite.spritecollide(self, trophy_group, False)
+
+        if trophy_collisions:
+            # Display the final window or perform any other actions
+            display_buttons()
+
         for enemy in enemy_collisions:
             self.hp -= 10
             ost_hp = self.hp
@@ -242,6 +248,7 @@ class Field:
                 elif self.field_data[y][x] == 'C':
                     Tile('island_floor_stone', x, y)
                     Tile('prize', x, y)
+                    trophy_group.add(Tile('prize', x, y))
                 elif self.field_data[y][x] == 't':
                     Tile('over', x, y)
                     Tile('plant', x, y)
@@ -358,7 +365,7 @@ enemi_group = pygame.sprite.Group()
 weapon_group = pygame.sprite.Group()
 explosion_group = pygame.sprite.Group()
 wall_group = pygame.sprite.Group()
-
+trophy_group = pygame.sprite.Group()
 # player_spr = Player(width // 2, height // 2)
 # player_group.add(player_spr)
 
@@ -468,8 +475,8 @@ def display_buttons():
 
     font = pygame.font.Font('project/one piece font.ttf', 36)  # Добавлен шрифт
 
-    save_button = Button(200, 100, 400, 100, 'Save', saving_in_bd)
-    quit_button = Button(200, 600, 400, 100, 'Quit', terminate)
+    save_button = Button(300, 600, 400, 100, 'Save', saving_in_bd)
+    quit_button = Button(850, 600, 400, 100, 'Quit', terminate)
 
     while is_window_open:
         for event in pygame.event.get():
