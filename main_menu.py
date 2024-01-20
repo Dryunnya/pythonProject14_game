@@ -15,7 +15,6 @@ def run_menu():
 
     def start_game_core():
         start_game()
-        time.sleep(5)
         terminate()
 
     menu = pygame_menu.Menu(title='PumpRun',
