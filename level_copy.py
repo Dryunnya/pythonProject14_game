@@ -4,6 +4,14 @@ import random
 import math
 from pygame.locals import *
 import time
+import pygame.mixer
+
+pygame.mixer.init()
+
+# Загрузка фоновой музыки
+pygame.mixer.music.load('project/Chuck_Berry_-_You_Never_Can_Tell.mp3')  # Замените 'background_music.mp3' на путь к вашему аудиофайлу
+pygame.mixer.music.set_volume(0.5)  # Установите уровень громкости (от 0.0 до 1.0)
+pygame.mixer.music.play(-1)
 
 killed_enemies_count = 0
 ost_hp = 0
