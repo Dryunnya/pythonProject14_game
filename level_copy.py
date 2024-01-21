@@ -339,7 +339,7 @@ def start_screen():
 
 
 # filename = str(input('название файла: '))
-filename = 'second_pole.txt'
+filename = 'pole.txt'
 pygame.init()
 size = width, height = 1500, 800
 

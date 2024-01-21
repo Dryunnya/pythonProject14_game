@@ -11,16 +11,24 @@ def terminate():
 
 def run_menu():
     def start_game():
-        os.startfile(""'main.exe'"")
+        os.startfile(""'level_copy.exe'"")
+
+    def start_game2():
+        os.startfile(""'level_copy2.exe'"")
 
     def start_game_core():
         start_game()
         terminate()
 
+    def start_game_core2():
+        start_game2()
+        terminate()
+
     menu = pygame_menu.Menu(title='PumpRun',
                             width=monitor_size[0], height=monitor_size[1],
                             theme=theme)
-    menu.add.button('START GAME', start_game_core)
+    menu.add.button('START GAME ( LEVEL 1 )', start_game_core)
+    menu.add.button('START GAME ( LEVEL 2 )', start_game_core2)
 
     menu.add.button('QUIT', pygame_menu.events.EXIT)
 
