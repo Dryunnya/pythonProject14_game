@@ -5,11 +5,13 @@ import math
 from pygame.locals import *
 import time
 import pygame.mixer
+import csv
 
 pygame.mixer.init()
 
 # Загрузка фоновой музыки
-pygame.mixer.music.load('project/Chuck_Berry_-_You_Never_Can_Tell.mp3')  # Замените 'background_music.mp3' на путь к вашему аудиофайлу
+pygame.mixer.music.load(
+    'project/Chuck_Berry_-_You_Never_Can_Tell.mp3')  # Замените 'background_music.mp3' на путь к вашему аудиофайлу
 pygame.mixer.music.set_volume(0.5)  # Установите уровень громкости (от 0.0 до 1.0)
 pygame.mixer.music.play(-1)
 
@@ -533,8 +535,19 @@ def display_buttons():
 # функция вычисление кличества убитых 428 строчка/amount
 # здоровье: ost_hp
 # время: current_time
-def saving_in_bd():
-    pass
+
+
+def saving_in_bd(ost_hp, current_time):
+    with open('records.csv', 'a') as file:
+        file.write(f'{ost_hp};{current_time}\n')
+
+
+def get_all_records():
+    with open('records.csv') as file:
+        records = []
+        for i in csv.reader(file, delimiter=';'):
+            records.append(i)
+        return records
 
 
 # restart_count = 0
