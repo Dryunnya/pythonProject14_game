@@ -98,7 +98,6 @@ class Player(pygame.sprite.Sprite):
         trophy_collisions = pygame.sprite.spritecollide(self, trophy_group, False)
 
         if trophy_collisions:
-            # Display the final window or perform any other actions
             display_buttons()
 
         for enemy in enemy_collisions:
@@ -113,7 +112,7 @@ class Weapon(pygame.sprite.Sprite):
     def __init__(self, player_rect, mouse_position):
         super().__init__()
         self.original_image = pygame.transform.scale(load_image("bullet.png"),
-                                                     (60, 30))  # Replace "bullet_image.png" with your bullet image file
+                                                     (60, 30))
         self.image = self.original_image.copy()
         self.rect = self.image.get_rect()
         self.rect.center = player_rect.center
@@ -148,7 +147,7 @@ class Enemy(pygame.sprite.Sprite):
         self.offset_x = random.randrange(-300, 300)
         self.offset_y = random.randrange(-300, 300)
         self.hp = 100
-        self.shoot_cooldown = 60  # Set the cooldown time between shots
+        self.shoot_cooldown = 60
         self.shoot_timer = 0
 
     def update(self):
@@ -158,11 +157,6 @@ class Enemy(pygame.sprite.Sprite):
 
         # Check if the player is within a certain radius before starting movement
         if distance_to_player < 300:
-            # if self.shoot_timer <= 0:
-            #     Weapon(self.rect.centerx, self.rect.centery, target_x, target_y)
-            #     self.shoot_timer = self.shoot_cooldown
-            # else:
-            #     self.shoot_timer -= 1
             # Логика движения врага
             if self.reset_offset == 0:
                 self.offset_x = random.randrange(-300, 300)
@@ -189,7 +183,7 @@ class Enemy(pygame.sprite.Sprite):
 
 
 class Explosion(pygame.sprite.Sprite):
-    def __init__(self, x, y, delay=0.5):  # Add a 'delay' parameter with a default value
+    def __init__(self, x, y, delay=0.5):
         super().__init__()
 
         self.images = [pygame.transform.scale(load_image('krest.png'), (80, 80))]
@@ -198,8 +192,8 @@ class Explosion(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
-        self.delay = delay  # Store the delay value
-        self.start_time = time.time()  # Record the start time
+        self.delay = delay
+        self.start_time = time.time()
 
     def update(self):
         current_time = time.time()
@@ -251,7 +245,7 @@ class Field:
                     Tile('island_floor_stone', x, y)
                 elif self.field_data[y][x] == '@':
                     Tile('empty', x, y)
-                    player_spr = Player(x * self.sprite_size, y * self.sprite_size)  # Create a Player object
+                    player_spr = Player(x * self.sprite_size, y * self.sprite_size)  # Создание "Игрока"
                     player_group.add(player_spr)
                 elif self.field_data[y][x] == '*':
                     Tile('over', x, y)
@@ -476,12 +470,12 @@ def update_killed_enemies_text(count):
 
 is_window_open = True
 game_over = False
-start_time = pygame.time.get_ticks()
+start_time = time.time()
 current_time = 0
 
 
 def display_buttons():
-    global is_window_open, game_over
+    global is_window_open, game_over, current_time
     pygame.init()
     screen = pygame.display.set_mode((1500, 800))
     pygame.display.set_caption('Game Window')
@@ -501,7 +495,7 @@ def display_buttons():
                 # Process buttons' events
                 for button in [save_button, quit_button]:
                     button.process()
-        current_time = (pygame.time.get_ticks() - start_time) // 1000  # в секундах
+        current_time = int(time.time() - start_time) # в секундах
 
         end_fon1 = pygame.transform.scale(load_image('end_mountain (1).png'), (width, height))
         screen.blit(end_fon1, (0, 0))
@@ -537,9 +531,9 @@ def display_buttons():
 # время: current_time
 
 
-def saving_in_bd(ost_hp, current_time):
+def saving_in_bd():
     with open('records.csv', 'a') as file:
-        file.write(f'{ost_hp};{current_time}\n')
+        file.write(f'{amount};{current_time}\n')
 
 
 def get_all_records():
