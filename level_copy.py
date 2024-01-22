@@ -495,7 +495,7 @@ def display_buttons():
                 # Process buttons' events
                 for button in [save_button, quit_button]:
                     button.process()
-        current_time = int(time.time() - start_time) # в секундах
+        current_time = int(time.time() - start_time)  # в секундах
 
         end_fon1 = pygame.transform.scale(load_image('end_mountain (1).png'), (width, height))
         screen.blit(end_fon1, (0, 0))
@@ -525,9 +525,8 @@ def display_buttons():
         pygame.display.flip()
 
 
-# Сенина база данных: в ней хранятся количество убитых врагов, здоровье и время, за которое была пройдена игра
+# Сенина база данных: в ней хранятся количество убитых врагов и время, за которое была пройдена игра
 # функция вычисление кличества убитых 428 строчка/amount
-# здоровье: ost_hp
 # время: current_time
 
 
@@ -542,24 +541,6 @@ def get_all_records():
         for i in csv.reader(file, delimiter=';'):
             records.append(i)
         return records
-
-
-# restart_count = 0
-
-# def restart_game():
-#     global restart_count
-#
-#     restart_count += 1
-#
-#     player_spr.hp = 100
-
-
-# font_restart = pygame.font.Font('project/one piece font.ttf', 36)
-
-
-# def update_restart_text(count):
-#     text_restart = font_restart.render(f'Restarts: {count}', True, (255, 255, 255))
-#     screen.blit(text_restart, (10, 50))
 
 
 while True:
